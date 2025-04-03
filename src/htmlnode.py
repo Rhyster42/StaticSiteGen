@@ -9,7 +9,7 @@ class HTMLNode():
         self.props = props
 
     def to_html(self):
-        raise NotImplementedError
+        raise NotImplementedError("to_html method not implemented")
     
     def props_to_html(self):
         propstring = ""
@@ -18,7 +18,7 @@ class HTMLNode():
         return propstring
     
     def __repr__(self):
-            print(f'HTMLNode:{self.tag}, {self.value}, {self.children}, {self.props}')
+            return f'HTMLNode:{self.tag}, {self.value}, {self.children}, {self.props}'
 
 class LeafNode(HTMLNode):
     def __init__(self, tag, value, props=None):
@@ -29,11 +29,30 @@ class LeafNode(HTMLNode):
         if self.value is None:
             raise ValueError('LeafNode must have a value')
         if self.tag is None:
-            return {self.value}
+            return f'{self.value}'
 
         if self.props:
             return f'<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>' 
         
         return f'<{self.tag}>{self.value}</{self.tag}>'
+    
+class ParentNode(HTMLNode):
+    def __init__(self, tag=None, children=None, props=None):
+        super().__init__(tag, None, children, props)
 
+    def to_html(self):
+
+        if not self.tag:
+            raise ValueError('ParentNode must have a tag')
+        if not self.children:
+                raise ValueError('ParentNode must have children')
         
+        childpen = "" # a string variable to collect all LeafNodes
+        
+        for child in self.children:
+            if not child.children:
+                childpen += child.to_html()
+            else:
+                childpen += child.to_html()
+
+        return f'<{self.tag}>{childpen}</{self.tag}>'
