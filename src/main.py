@@ -1,4 +1,5 @@
 import os, shutil, sys
+from pathlib import Path
 
 from blocks import markdown_to_html_node
 from extractors import extract_title
@@ -22,6 +23,18 @@ def import_directory(source, target_directory):
         else:
             print(f"Creating directory: {target_path}")
             import_directory(source_path, target_path)
+
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    for filename in os.listdir(dir_path_content):
+        from_path = os.path.join(dir_path_content, filename)
+        dest_path = os.path.join(dest_dir_path, filename)
+        if os.path.isfile(from_path):
+            dest_path = Path(dest_path).with_suffix(".html")
+            generate_page(from_path, template_path, dest_path)
+        else:
+            generate_pages_recursive(from_path, template_path, dest_path)
+
 
 def generate_page(from_path, template_path, dest_path, basepath):
 
@@ -68,18 +81,7 @@ def main():
     
     
 
-    for root, dirs, files in os.walk(content_dir):
-        for file in files:
-
-            if file.endswith('md'):
-
-                from_path = os.path.join(root, file)
-
-                rel_path = os.path.relpath(from_path, content_dir)
-
-                dest_path = os.path.join(target_directory, rel_path.replace('md', 'html'))
-
-                generate_page(from_path, template_path, dest_path, basepath)
+    generate_pages_recursive(content_dir, template_path, target_directory)
             
     
 
