@@ -1,4 +1,4 @@
-import os, shutil
+import os, shutil, sys
 
 from blocks import markdown_to_html_node
 from extractors import extract_title
@@ -23,7 +23,7 @@ def import_directory(source, target_directory):
             print(f"Creating directory: {target_path}")
             import_directory(source_path, target_path)
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
 
     print(f'Generating page from {from_path} to {dest_path} using {template_path}')
 
@@ -35,11 +35,13 @@ def generate_page(from_path, template_path, dest_path):
 
 
     html_md_string = markdown_to_html_node(from_doc).to_html()
-    print(f"Generated HTML from markdown: {html_md_string}")
 
 
     header = extract_title(from_doc)
-    final_md = template.replace('{{ Title }}', header).replace('{{ Content }}', html_md_string)
+    final_md = template.replace('{{ Title }}', header)\
+        .replace('{{ Content }}', html_md_string)\
+        .replace('href="/', f'href="{basepath}')\
+        .replace('src="/', f'src="{basepath}')
 
     print(f"os.path.dirname({dest_path}) evaluates to: {os.path.dirname(dest_path)}")
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
@@ -50,13 +52,22 @@ def generate_page(from_path, template_path, dest_path):
     pass
 
 def main():
-    target_directory = '/home/rhysespich/workspace/StaticSiteGen/public'
+
+    if len(sys.argv) > 1:
+        basepath = sys.argv[1]
+    else:
+        basepath = '/'
+    print(f'____________________{basepath}__________________')
+
+    target_directory = '/home/rhysespich/workspace/StaticSiteGen/docs'
     source_directory = '/home/rhysespich/workspace/StaticSiteGen/static'
     import_directory(source_directory,target_directory)
 
     content_dir = '/home/rhysespich/workspace/StaticSiteGen/content'
     template_path = '/home/rhysespich/workspace/StaticSiteGen/template.html'
     
+    
+
     for root, dirs, files in os.walk(content_dir):
         for file in files:
 
@@ -68,7 +79,7 @@ def main():
 
                 dest_path = os.path.join(target_directory, rel_path.replace('md', 'html'))
 
-                generate_page(from_path, template_path, dest_path)
+                generate_page(from_path, template_path, dest_path, basepath)
             
     
 
